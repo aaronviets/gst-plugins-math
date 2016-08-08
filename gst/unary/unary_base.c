@@ -25,7 +25,6 @@
 #include <unary_base.h>
 
 
-
 /*
  * ============================================================================
  *
@@ -33,6 +32,16 @@
  *
  * ============================================================================
  */
+
+
+#define CAPS \
+    "audio/x-raw, " \
+    "format = (string) { F32LE, F32BE, F64LE, F64BE, Z64LE, Z64BE, Z128LE, Z128BE }, " \
+    "rate = (int) [1, MAX], " \
+    "channels = (int) [1, MAX], " \
+    "layout = (string) {interleaved, non-interleaved}, " \
+    "channel-mask = (bitmask) 0"
+
 
 static void
 base_init(gpointer klass)
@@ -51,13 +60,13 @@ base_init(gpointer klass)
   static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("ANY")
+    GST_STATIC_CAPS(CAPS)
   );
 
   static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("ANY")
+    GST_STATIC_CAPS(CAPS)
   );
 
   gstbasetransform_class -> set_caps = set_caps;
@@ -123,7 +132,8 @@ gboolean set_caps(GstBaseTransform *trans, GstCaps *incaps,
     return 0;
   }
   /* g_print("incaps format: [%s]\n", format); */
-  for(int i = 0; i < sizeof(formats) / sizeof(*formats); i++) {
+  int i;
+  for(i = 0; i < sizeof(formats) / sizeof(*formats); i++) {
     if(!strcmp(format, formats[i])) {
       element->is_complex = is_complex[i];
       element->bits = bits[i];
@@ -135,6 +145,7 @@ gboolean set_caps(GstBaseTransform *trans, GstCaps *incaps,
   element->is_complex = -1;
   element->bits = -1;
   element->channels = -1;
+  element->interleave = NULL;
   return 0;
 
   found_format:
@@ -146,6 +157,7 @@ gboolean set_caps(GstBaseTransform *trans, GstCaps *incaps,
     return 0;
   }
   /* g_print("incaps interleave: [%s]\n", interleave); */
+  element->interleave = interleave;
 
   if(gst_structure_has_field(str, "channels")) {
     gst_structure_get_int(str, "channels", &channels);

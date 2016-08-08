@@ -54,6 +54,7 @@ struct _UnaryBase
   int bits;
   int channels;
   int rate;
+  const gchar *interleave;
 };
 
 struct _UnaryBaseClass
